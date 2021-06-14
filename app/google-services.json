@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "504490884437",
+    "project_id": "appgenda-c755f",
+    "storage_bucket": "appgenda-c755f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:504490884437:android:d3c617900efc23b2f183dc",
+        "android_client_info": {
+          "package_name": "com.example.appgenda"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "504490884437-8s7q1569h0a917nq5n20lmgahf8vmuch.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-qK_l4jlfvk9xntemLf5m96bzyejGi-8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "504490884437-8s7q1569h0a917nq5n20lmgahf8vmuch.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
