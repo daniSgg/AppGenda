@@ -1,9 +1,12 @@
 package com.example.appgenda.Authentication;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
+import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -14,19 +17,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.appgenda.Agenda.Calendar;
 import com.example.appgenda.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +36,12 @@ public class Registrar extends AppCompatActivity {
     FirebaseAuth fAuth;
     ProgressBar progressBar;
     String userID;
+
+    // to check if we are connected to Network
+    boolean isConnected = true;
+
+    // to check if we are monitoring Network
+    private boolean monitoringConnectivity = false;
 
     public static final String TAG = "TAG";
 
@@ -138,6 +142,8 @@ public class Registrar extends AppCompatActivity {
                     progressBar.setVisibility(View.GONE);
                 }
             });
+
+            checkConnectivity();
         });
 
         //Hacemos botón el text view
@@ -149,5 +155,44 @@ public class Registrar extends AppCompatActivity {
             startActivity(new Intent(getApplicationContext(), Login.class));
 
         });
+    }
+
+    private ConnectivityManager.NetworkCallback connectivityCallback = new ConnectivityManager.NetworkCallback() {
+        @Override
+        public void onAvailable(Network network) {
+            isConnected = true;
+        }
+
+        @Override
+        public void onLost(Network network) {
+            isConnected = false;
+            Toast.makeText(Registrar.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    private void checkConnectivity() {
+        final ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        isConnected = activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+
+        if (!isConnected) {
+            Toast.makeText(Registrar.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
+
+            connectivityManager.registerNetworkCallback(new NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .build(), connectivityCallback);
+            monitoringConnectivity = true;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (monitoringConnectivity) {
+            final ConnectivityManager connectivityManager
+                    = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            connectivityManager.unregisterNetworkCallback(connectivityCallback);
+            monitoringConnectivity = false;
+        }
+        super.onPause();
     }
 }

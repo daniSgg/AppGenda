@@ -1,22 +1,18 @@
 package com.example.appgenda.menuLateral;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.appgenda.Authentication.Login;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.appgenda.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -35,7 +31,7 @@ import java.util.Objects;
 
 public class userProfile extends AppCompatActivity {
     TextView fullName, email, phone, verifyMsg;
-    Button btnVerificar, restearPasswd, editImage;
+    Button btnVerificar, editImage, btnAjustes, btnEventos;
     ImageView profileImage;
 
     FirebaseAuth fAuth;
@@ -58,9 +54,10 @@ public class userProfile extends AppCompatActivity {
         email = findViewById(R.id.profileEmail);
         verifyMsg = findViewById(R.id.textVerify);
         btnVerificar = findViewById(R.id.btnVerify);
-        restearPasswd = findViewById(R.id.resetPasswdLocal);
         profileImage = findViewById(R.id.profileImg);
         editImage = findViewById(R.id.changeProfile);
+        btnAjustes = findViewById(R.id.accesoAjustes);
+        btnEventos = findViewById(R.id.accesoEventos);
 
         //Inicializamos la clase auth de firebase
         fAuth = FirebaseAuth.getInstance();
@@ -127,64 +124,7 @@ public class userProfile extends AppCompatActivity {
 
         databaseReference.addValueEventListener(eventListener);
 
-        //Botón para cambiar la contraseña
-        restearPasswd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Creamos un campo donde podamos escribir nuestro email
-                EditText resetPassword = new EditText(v.getContext());
-
-                //Creamos un cuadro de dialogo para preguntar si quiere restablecer la contraseña
-                AlertDialog.Builder passwordResetDialog = new AlertDialog.Builder(v.getContext());
-                passwordResetDialog.setTitle("¿Quieres cambiar la contraseña?");
-                passwordResetDialog.setMessage("Introduzca una nueva contraseña mayor a 6 caracteres de longitud. " +
-                        "              ¡AVISO! Si cambia la contraseña se cerrará la sesión automáticamente.");
-                passwordResetDialog.setView(resetPassword);
-
-                //Si presionamos el botón si...
-                passwordResetDialog.setPositiveButton("Si", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        //Recibe el email y envia el link para resetear la contraseña
-                        String newPassword = resetPassword.getText().toString();
-                        user.updatePassword(newPassword).addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
-                                Toast.makeText(userProfile.this, "La contraseña se cambió correctamente.", Toast.LENGTH_SHORT).show();
-
-                                //Cerramos la sesión del usuario activo
-                                FirebaseAuth.getInstance().signOut();
-                                Toast.makeText(userProfile.this, "Cerrando Sesión...", Toast.LENGTH_SHORT).show();
-                                finish();
-
-                                //Volvemos a una ventana vacia de login
-                                startActivity(new Intent(getApplicationContext(), Login.class));
-                                onStop();
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(userProfile.this, "El cambio de contraseña falló.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                });
-
-                //Si presionamos el botón no...
-                passwordResetDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        //Cierra
-
-                    }
-                });
-
-                //Para crear e iniciar el cuadro de dialogo
-                passwordResetDialog.create().show();
-
-            }
-        });
-
+        //Editar el perfil de usuario
         editImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -194,7 +134,25 @@ public class userProfile extends AppCompatActivity {
                 i.putExtra("email", email.getText().toString());
                 i.putExtra("phone", phone.getText().toString());
                 startActivity(i);
+                finish();
+            }
+        });
 
+        btnAjustes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                Toast.makeText(userProfile.this, "Entrando en ajustes...", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), ajustes.class));
+            }
+        });
+
+        btnEventos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                Toast.makeText(userProfile.this, "Entrando en Mis Eventos...", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), allEventos.class));
             }
         });
 
@@ -208,18 +166,4 @@ public class userProfile extends AppCompatActivity {
             this.finish();
         }
     }
-
-    //Cierro sesión
-    public void logout(View view) {
-        //Cerramos la sesión del usuario activo
-        FirebaseAuth.getInstance().signOut();
-        Toast.makeText(userProfile.this, "Cerrando Sesión...", Toast.LENGTH_SHORT).show();
-        finish();
-
-
-        //Volvemos a una ventana vacia de login
-        startActivity(new Intent(getApplicationContext(), Login.class));
-        onStop();
-    }
-
 }

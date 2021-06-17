@@ -18,8 +18,6 @@ public class Evento {
         this.fechaHasta = fechaHasta;
     }
 
-
-
     public String getTitulos() {
         return Titulo;
     }

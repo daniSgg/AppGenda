@@ -3,6 +3,7 @@
     package="com.example.appgenda">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -11,10 +12,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppGenda">
-
         <activity
-            android:name=".menuLateral.editProfile"
-            android:parentActivityName=".menuLateral.userProfile" />
+            android:name=".menuLateral.ajustes"
+            android:parentActivityName=".Agenda.Calendar" />
+        <activity
+            android:name=".menuLateral.allEventos"
+            android:parentActivityName=".Agenda.Calendar" />
+        <activity android:name=".Agenda.modifEventos" />
+        <activity android:name=".menuLateral.editProfile" />
         <activity
             android:name=".menuLateral.userProfile"
             android:parentActivityName=".Agenda.Calendar" />

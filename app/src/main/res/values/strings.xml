@@ -2,4 +2,6 @@
     <string name="app_name">AppGenda</string>
     <string name="open" />
     <string name="close" />
+    <string name="default_notification_channel_id" />
+    <string name="fcm_message" />
 </resources>

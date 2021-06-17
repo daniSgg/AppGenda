@@ -1,13 +1,7 @@
-package com.example.appgenda.Agenda;
+package com.example.appgenda.menuLateral;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
-import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -19,6 +13,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.appgenda.Agenda.modifEventos;
 import com.example.appgenda.Evento;
 import com.example.appgenda.R;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -29,14 +24,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Objects;
 
-public class viewEventos extends AppCompatActivity implements AdapterView.OnItemLongClickListener {
+public class allEventos extends AppCompatActivity implements AdapterView.OnItemLongClickListener {
     TextView subTitulo;
 
     DatabaseReference databaseReference;
@@ -46,16 +38,10 @@ public class viewEventos extends AppCompatActivity implements AdapterView.OnItem
     ListView listView;
     ArrayAdapter<String> arrayAdapter;
 
-    // to check if we are connected to Network
-    boolean isConnected = true;
-
-    // to check if we are monitoring Network
-    private boolean monitoringConnectivity = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_eventos);
+        setContentView(R.layout.activity_all_eventos);
 
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
@@ -65,17 +51,10 @@ public class viewEventos extends AppCompatActivity implements AdapterView.OnItem
         eventos = new LinkedList<Evento>();
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
 
-        int dia=0, mes=0, anio=0;
-        dia = getIntent().getIntExtra("dia", dia);
-        mes = getIntent().getIntExtra("mes", mes+1);
-        anio = getIntent().getIntExtra("anio", anio);
-
-        subTitulo.setText(anio + "-" + mes + "-" + dia);
-
-        String selectFecha = anio + "-" + mes + "-" + dia;
-
         fAuth = FirebaseAuth.getInstance();
         userID = fAuth.getCurrentUser().getUid();
+
+        subTitulo.setText("Lista de todos los eventos");
 
         databaseReference = FirebaseDatabase.getInstance().getReference().child(userID).child("Eventos");
 
@@ -100,32 +79,14 @@ public class viewEventos extends AppCompatActivity implements AdapterView.OnItem
                     String fechIni = e.getFechaDesde();
                     String fechFin = e.getFechaHasta();
 
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-
-                    try {
-
-                        Date ini = sdf.parse(fechIni);
-                        Date fin = sdf.parse(fechFin);
-                        Date fechAct = sdf.parse(selectFecha);
+                    arrayAdapter.add("\n Titulo del Evento: " + titulo + "\n " +
+                            "Descripción: " + descrip + "\n " +
+                            "Fecha de Inicio: " + fechIni + "\n " +
+                            "Fecha de Fin: " + fechFin + "\n");
 
 
-                        if(((fechAct.after(ini)) || (fechAct.equals(ini))) && ((fechAct.before(fin)) || (fechAct.equals(fin)))){
+                    listView.setAdapter(arrayAdapter);
 
-                            arrayAdapter.add("\n Titulo del Evento: " + titulo + "\n " +
-                                            "Descripción: " + descrip + "\n " +
-                                            "Fecha de Inicio: " + fechIni + "\n " +
-                                            "Fecha de Fin: " + fechFin + "\n");
-
-                        }else{
-
-                        }
-
-                        listView.setAdapter(arrayAdapter);
-
-
-                    } catch (ParseException parseException) {
-                        parseException.printStackTrace();
-                    }
                 }
             }
 
@@ -138,6 +99,7 @@ public class viewEventos extends AppCompatActivity implements AdapterView.OnItem
         listView.setOnItemLongClickListener(this);
 
         super.onResume();
+
 
     }
 
@@ -192,14 +154,13 @@ public class viewEventos extends AppCompatActivity implements AdapterView.OnItem
                     eliminar.setPositiveButton("Si", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            checkConnectivity();
                             ListIterator<Evento> iterador = eventos.listIterator(position);
                             Evento e = iterador.next();
                             String titulo = e.getTitulos();
                             databaseReference.child(titulo).removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void unused) {
-                                    Toast.makeText(viewEventos.this, "Evento eliminado!!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(allEventos.this, "Evento eliminado!!", Toast.LENGTH_SHORT).show();
                                     finish();
                                 }
                             });
@@ -226,42 +187,5 @@ public class viewEventos extends AppCompatActivity implements AdapterView.OnItem
         return false;
     }
 
-    private ConnectivityManager.NetworkCallback connectivityCallback = new ConnectivityManager.NetworkCallback() {
-        @Override
-        public void onAvailable(Network network) {
-            isConnected = true;
-        }
 
-        @Override
-        public void onLost(Network network) {
-            isConnected = false;
-            Toast.makeText(viewEventos.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
-        }
-    };
-
-    private void checkConnectivity() {
-        final ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        isConnected = activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
-
-        if (!isConnected) {
-            Toast.makeText(viewEventos.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
-
-            connectivityManager.registerNetworkCallback(new NetworkRequest.Builder()
-                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                    .build(), connectivityCallback);
-            monitoringConnectivity = true;
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        if (monitoringConnectivity) {
-            final ConnectivityManager connectivityManager
-                    = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-            connectivityManager.unregisterNetworkCallback(connectivityCallback);
-            monitoringConnectivity = false;
-        }
-        super.onPause();
-    }
 }

@@ -1,20 +1,25 @@
 package com.example.appgenda.menuLateral;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
+import android.net.NetworkRequest;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appgenda.R;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -30,13 +35,12 @@ import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class editProfile extends AppCompatActivity {
     public static final String TAG = "TAG";
     EditText profileFullName, profileEmail, profilePhone;
     ImageView profileImageView;
-    Button saveBtn;
+    Button saveBtn, cancelar;
 
     FirebaseAuth fAuth;
     FirebaseUser user;
@@ -44,13 +48,16 @@ public class editProfile extends AppCompatActivity {
     DatabaseReference databaseReference;
     String userId;
 
+    // to check if we are connected to Network
+    boolean isConnected = true;
+
+    // to check if we are monitoring Network
+    private boolean monitoringConnectivity = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
-
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         Intent datos = getIntent();
         String fullName = datos.getStringExtra("fullName");
@@ -69,6 +76,7 @@ public class editProfile extends AppCompatActivity {
         profilePhone = findViewById(R.id.profilePhoneNo);
         profileImageView = findViewById(R.id.profileImageView);
         saveBtn = findViewById(R.id.saveProfileInfo);
+        cancelar = findViewById(R.id.btnCancelar);
 
         StorageReference profileRef = storageReference.child("users/"+fAuth.getCurrentUser().getUid()+"/profile.jpg");
         profileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
@@ -99,19 +107,21 @@ public class editProfile extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void voud) {
                         Map<String, Object> update = new HashMap<>();
-                        update.put("fName", fullName);
-                        update.put("email", email);
-                        update.put("phone", phone);
+                        String fn = String.valueOf(profileFullName.getText()),
+                                gm = String.valueOf(profileEmail.getText()),
+                                telf = String.valueOf(profilePhone.getText());
+
+                        update.put("fName", fn);
+                        update.put("email", gm);
+                        update.put("phone", telf);
 
                         databaseReference.updateChildren(update).addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void unused) {
                                 Toast.makeText(editProfile.this, "Perfil Actualizado!", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(getApplicationContext(), userProfile.class));
                                 finish();
                             }
                         });
-                        Toast.makeText(editProfile.this, "El email fué cambiado!!", Toast.LENGTH_SHORT).show();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -120,6 +130,14 @@ public class editProfile extends AppCompatActivity {
                     }
                 });
 
+                checkConnectivity();
+            }
+        });
+
+        cancelar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
             }
         });
 
@@ -127,7 +145,6 @@ public class editProfile extends AppCompatActivity {
         profileFullName.setText(fullName);
         profilePhone.setText(phone);
 
-        Log.d(TAG, "onCreate: " + fullName + " " + email + " " + phone);
     }
 
     @Override
@@ -155,6 +172,7 @@ public class editProfile extends AppCompatActivity {
 
     private void uploadImageToFirebase(Uri imageUri){
         //Subimos la imagen a firebase
+        checkConnectivity();
         StorageReference fileRef = storageReference.child("users/"+fAuth.getCurrentUser().getUid()+"/profile.jpg");
         fileRef.putFile(imageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -172,5 +190,44 @@ public class editProfile extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Error!", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private ConnectivityManager.NetworkCallback connectivityCallback = new ConnectivityManager.NetworkCallback() {
+        @Override
+        public void onAvailable(Network network) {
+            isConnected = true;
+        }
+
+        @Override
+        public void onLost(Network network) {
+            isConnected = false;
+            Toast.makeText(editProfile.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    private void checkConnectivity() {
+        final ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        isConnected = activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+
+        if (!isConnected) {
+            Toast.makeText(editProfile.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
+
+            connectivityManager.registerNetworkCallback(new NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .build(), connectivityCallback);
+            monitoringConnectivity = true;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (monitoringConnectivity) {
+            final ConnectivityManager connectivityManager
+                    = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            connectivityManager.unregisterNetworkCallback(connectivityCallback);
+            monitoringConnectivity = false;
+        }
+        super.onPause();
     }
 }

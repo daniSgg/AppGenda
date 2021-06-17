@@ -4,20 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Agenda.addEventos">
+    tools:context=".Agenda.modifEventos">
 
     <TextView
         android:id="@+id/textView8"
-        android:layout_width="214dp"
+        android:layout_width="269dp"
         android:layout_height="65dp"
         android:layout_marginTop="48dp"
         android:fontFamily="@font/pacifico"
-        android:text="Añadir Evento"
+        android:text="Modificar Evento"
         android:textColor="#F44336"
         android:textSize="34sp"
         android:textStyle="bold|italic"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.517"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -35,15 +34,14 @@
 
     <TextView
         android:id="@+id/textView13"
-        android:layout_width="134dp"
-        android:layout_height="18dp"
+        android:layout_width="136dp"
+        android:layout_height="19dp"
         android:layout_marginTop="24dp"
         android:fontFamily="@font/chelsea_market"
         android:text="Fechas del Evento"
         android:textColor="#FFC107"
         android:textStyle="bold|italic"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edtDescripcion" />
 
@@ -97,22 +95,22 @@
 
     <TextView
         android:id="@+id/textView9"
-        android:layout_width="129dp"
-        android:layout_height="17dp"
+        android:layout_width="125dp"
+        android:layout_height="19dp"
         android:layout_marginTop="44dp"
         android:fontFamily="@font/chelsea_market"
         android:text="Titulo del Evento"
         android:textColor="#FFC107"
         android:textStyle="bold|italic"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.219"
+        app:layout_constraintHorizontal_bias="0.216"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView8" />
 
     <TextView
         android:id="@+id/textView12"
         android:layout_width="173dp"
-        android:layout_height="18dp"
+        android:layout_height="19dp"
         android:layout_marginTop="16dp"
         android:fontFamily="@font/chelsea_market"
         android:text="Descripción del Evento"
@@ -140,13 +138,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="36dp"
-        android:text="Guardar"
+        android:text="Modificar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnCancelar"
-        app:layout_constraintHorizontal_bias="0.563"
+        app:layout_constraintHorizontal_bias="0.632"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edtFechaHasta"
-        app:layout_constraintVertical_bias="0.008" />
+        app:layout_constraintVertical_bias="0.009" />
 
     <Button
         android:id="@+id/btnCancelar"
@@ -159,6 +157,6 @@
         app:layout_constraintHorizontal_bias="0.723"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edtFechaHasta"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.018" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

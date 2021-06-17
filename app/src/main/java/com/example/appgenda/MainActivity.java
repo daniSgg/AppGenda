@@ -1,7 +1,5 @@
 package com.example.appgenda;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -12,6 +10,8 @@ import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.os.Handler;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appgenda.Authentication.Login;
 
@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         super.onResume();
         checkConnectivity();
@@ -45,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onLost(Network network) {
             isConnected = false;
-            Toast.makeText(MainActivity.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -68,9 +69,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (!isConnected) {
-            Toast.makeText(MainActivity.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
 
-// if Network is not connected we will register a network callback to  monitor network
+            // if Network is not connected we will register a network callback to  monitor network
             connectivityManager.registerNetworkCallback(
                     new NetworkRequest.Builder()
                             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)

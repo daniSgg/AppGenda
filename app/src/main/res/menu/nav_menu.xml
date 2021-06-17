@@ -5,12 +5,16 @@
         android:title="Mi Perfil"
         android:icon="@drawable/licencia_de_conducir"/>
 
+    <item android:id="@+id/eventos"
+        android:title="Mis Eventos"
+        android:icon="@drawable/libros"/>
+
     <item android:id="@+id/settings"
         android:title="Mis Ajustes"
         android:icon="@drawable/configuraciones"/>
 
     <item android:id="@+id/cerrar"
         android:title="Cerrar App"
-        android:icon="@drawable/_675179"/>
+        android:icon="@drawable/salida__1_"/>
 
 </menu>

@@ -7,7 +7,6 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,7 +25,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.HashMap;
 import java.util.Map;
 
-public class addEventos extends AppCompatActivity {
+public class modifEventos extends AppCompatActivity {
     EditText nEvento, fechDesde, fechHasta, descripcion;
     Button guardar, cancelar;
 
@@ -43,7 +42,12 @@ public class addEventos extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_eventos);
+        setContentView(R.layout.activity_modif_eventos);
+
+        String titulo = getIntent().getStringExtra("titulo");
+        String descrp = getIntent().getStringExtra("descripcion");
+        String fdsd = getIntent().getStringExtra("fechDesde");
+        String fhst = getIntent().getStringExtra("fechHasta");
 
         nEvento = findViewById(R.id.edtNombreEvento);
         fechDesde = findViewById(R.id.edtFechaDesde);
@@ -53,58 +57,45 @@ public class addEventos extends AppCompatActivity {
         guardar = findViewById(R.id.btnGuardar);
         cancelar = findViewById(R.id.btnCancelar);
 
-        int dia=0, mes=0, anio=0;
-        dia = getIntent().getIntExtra("dia", dia);
-        mes = getIntent().getIntExtra("mes", mes+1);
-        anio = getIntent().getIntExtra("anio", anio);
-
-        fechDesde.setText(anio + "-" + mes + "-" + dia);
-        fechHasta.setText(anio + "-" + mes + "-" + dia);
-
         fAuth = FirebaseAuth.getInstance();
         userID = fAuth.getCurrentUser().getUid();
+
+        databaseReference = FirebaseDatabase.getInstance().getReference().child(userID).child("Eventos");
 
         guardar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String titulo = nEvento.getText().toString();
-                String fechDsd = fechDesde.getText().toString();
-                String fechHst = fechHasta.getText().toString();
-                String descrip = descripcion.getText().toString();
-
-                if(TextUtils.isEmpty(titulo)){
-                    nEvento.setError("El título del evento es requerido!!");
+                if(nEvento.getText().toString().isEmpty() || fechDesde.getText().toString().isEmpty() || fechHasta.getText().toString().isEmpty()){
+                    Toast.makeText(modifEventos.this, "Hay campos vacios!!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                if(TextUtils.isEmpty(fechDsd)){
-                    fechDesde.setError("La fecha de inicio del evento es requerido!!");
-                    return;
-                }
+                Map<String, Object> update = new HashMap<>();
+                String tlt = String.valueOf(nEvento.getText()),
+                        des = String.valueOf(descripcion.getText()),
+                        desc = String.valueOf(fechDesde.getText()),
+                        hast = String.valueOf(fechHasta.getText());
 
-                if(TextUtils.isEmpty(fechHst)){
-                    fechHasta.setError("La fecha de fin del evento es requerido!!");
-                    return;
-                }
+                update.put("Titulo", tlt);
+                update.put("Descripción", des);
+                update.put("fechaDesde", desc);
+                update.put("fechaHasta", hast);
 
-                databaseReference = FirebaseDatabase.getInstance().getReference().child(userID);
-
-                Map<String, Object> evento = new HashMap<>();
-                evento.put("Titulo", titulo);
-                evento.put("Descripción", descrip);
-                evento.put("fechaDesde", fechDsd);
-                evento.put("fechaHasta", fechHst);
-
-                databaseReference.child("Eventos").child(titulo).setValue(evento).addOnSuccessListener(new OnSuccessListener<Void>() {
+                databaseReference.child(tlt).updateChildren(update).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
-                        Toast.makeText(addEventos.this, "Evento añadido!!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(modifEventos.this, "Evento Actualizado!", Toast.LENGTH_SHORT).show();
+
+                        databaseReference.child(titulo).removeValue();
+                        databaseReference.child(tlt).setValue(update);
+
                         finish();
+
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(addEventos.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(modifEventos.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -118,15 +109,13 @@ public class addEventos extends AppCompatActivity {
                 finish();
             }
         });
-    }
 
-    @Override
-    protected void onResume() {
+        nEvento.setText(titulo);
+        descripcion.setText(descrp);
+        fechDesde.setText(fdsd);
+        fechHasta.setText(fhst);
+
         super.onResume();
-
-        if(fAuth.getCurrentUser() == null){
-            this.finish();
-        }
     }
 
     private ConnectivityManager.NetworkCallback connectivityCallback = new ConnectivityManager.NetworkCallback() {
@@ -138,7 +127,7 @@ public class addEventos extends AppCompatActivity {
         @Override
         public void onLost(Network network) {
             isConnected = false;
-            Toast.makeText(addEventos.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(modifEventos.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -148,7 +137,7 @@ public class addEventos extends AppCompatActivity {
         isConnected = activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
 
         if (!isConnected) {
-            Toast.makeText(addEventos.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(modifEventos.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
 
             connectivityManager.registerNetworkCallback(new NetworkRequest.Builder()
                     .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -167,4 +156,5 @@ public class addEventos extends AppCompatActivity {
         }
         super.onPause();
     }
+
 }

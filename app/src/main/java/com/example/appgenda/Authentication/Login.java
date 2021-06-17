@@ -1,11 +1,12 @@
 package com.example.appgenda.Authentication;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.DialogInterface;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
+import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -15,13 +16,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.appgenda.Agenda.Calendar;
 import com.example.appgenda.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class Login extends AppCompatActivity {
@@ -30,6 +29,12 @@ public class Login extends AppCompatActivity {
     TextView createBtn, forgotTextLink;
     ProgressBar progressBar;
     FirebaseAuth fAuth;
+
+    // to check if we are connected to Network
+    boolean isConnected = true;
+
+    // to check if we are monitoring Network
+    private boolean monitoringConnectivity = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +101,8 @@ public class Login extends AppCompatActivity {
                     progressBar.setVisibility(View.GONE);
                 }
             });
+
+            checkConnectivity();
         });
 
         //Hacemos botón los distintos text view
@@ -111,6 +118,8 @@ public class Login extends AppCompatActivity {
 
             //Si presionamos el botón si...
             passwordResetDialog.setPositiveButton("Si", (dialog, which) -> {
+                checkConnectivity();
+
                 //Recibe el email y envia el link para resetear la contraseña
                 String email = resetMail.getText().toString();
                 fAuth.sendPasswordResetEmail(email)
@@ -136,5 +145,44 @@ public class Login extends AppCompatActivity {
             //Accedemos a la pantalla de registro al pulsar en este botón
             startActivity(new Intent(getApplicationContext(), Registrar.class));
         });
+    }
+
+    private ConnectivityManager.NetworkCallback connectivityCallback = new ConnectivityManager.NetworkCallback() {
+        @Override
+        public void onAvailable(Network network) {
+            isConnected = true;
+        }
+
+        @Override
+        public void onLost(Network network) {
+            isConnected = false;
+            Toast.makeText(Login.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    private void checkConnectivity() {
+        final ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        isConnected = activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+
+        if (!isConnected) {
+            Toast.makeText(Login.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
+
+            connectivityManager.registerNetworkCallback(new NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .build(), connectivityCallback);
+            monitoringConnectivity = true;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (monitoringConnectivity) {
+            final ConnectivityManager connectivityManager
+                    = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            connectivityManager.unregisterNetworkCallback(connectivityCallback);
+            monitoringConnectivity = false;
+        }
+        super.onPause();
     }
 }

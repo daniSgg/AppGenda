@@ -1,14 +1,5 @@
 package com.example.appgenda.Agenda;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.NavigationUI;
-
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,16 +9,20 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.MenuItem;
 import android.widget.CalendarView;
 import android.widget.Toast;
 
-import com.example.appgenda.Authentication.Login;
-import com.example.appgenda.MainActivity;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.example.appgenda.R;
+import com.example.appgenda.menuLateral.ajustes;
+import com.example.appgenda.menuLateral.allEventos;
 import com.example.appgenda.menuLateral.userProfile;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -94,9 +89,16 @@ public class Calendar extends AppCompatActivity implements NavigationView.OnNavi
             case R.id.perfil:
                 Toast.makeText(this, "Entrando en Mi Perfil", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(getApplicationContext(), userProfile.class));
+                checkConnectivity();
+                break;
+            case R.id.eventos:
+                Toast.makeText(this, "Entrando en Mis Eventos", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), allEventos.class));
+                checkConnectivity();
                 break;
             case R.id.settings:
                 Toast.makeText(this, "Entrando en Mis Ajustes", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getApplicationContext(), ajustes.class));
                 break;
             case R.id.cerrar:
                 AlertDialog.Builder salir = new AlertDialog.Builder(this);
@@ -121,6 +123,13 @@ public class Calendar extends AppCompatActivity implements NavigationView.OnNavi
                 break;
 
         }
+
+        super.onResume();
+
+        if(fAuth.getCurrentUser() == null){
+            this.finish();
+        }
+
         return true;
     }
 
@@ -152,6 +161,7 @@ public class Calendar extends AppCompatActivity implements NavigationView.OnNavi
                     intent.putExtra("anio", anio);
                     startActivity(intent);
                     checkConnectivity();
+
                 }else{
                     return;
                 }
@@ -182,7 +192,7 @@ public class Calendar extends AppCompatActivity implements NavigationView.OnNavi
         isConnected = activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
 
         if (!isConnected) {
-            Toast.makeText(Calendar.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET", Toast.LENGTH_SHORT).show();
+            Toast.makeText(Calendar.this, "SE DEBE DISPONER DE CONEXIÓN A INTERNET!!", Toast.LENGTH_SHORT).show();
 
             connectivityManager.registerNetworkCallback(new NetworkRequest.Builder()
                     .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
